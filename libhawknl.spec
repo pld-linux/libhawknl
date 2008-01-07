@@ -1,9 +1,7 @@
-# TODO
-# - static
 Summary:	HawkNL is a free, open source, game oriented network API
 Name:		libhawknl
 Version:	1.68
-Release:	0.1
+Release:	0.2
 License:	LGPL
 Group:		Libraries
 URL:		http://www.hawksoft.com/hawknl/
@@ -23,13 +21,21 @@ CRC functions, macros to read and write data to packets with endian
 conversion, and support for multiple network transports.
 
 %package devel
-Summary:	DInclude Files and Libraries mandatory for development with hawknl
+Summary:	Include Files and Libraries mandatory for development with hawknl
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
 
 %description devel
 The hawknl-devel package contains libraries and header files for
 developing applications that use hawknl.
+
+%package static
+Summary:	Static hawknl library
+Group:		Development/Libraries
+Requires:	%{name}-devel = %{version}-%{release}
+
+%description static
+Static hawknl library.
 
 %prep
 %setup -q -n hawknl%{version}
@@ -67,11 +73,16 @@ rm -rf  $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc src/readme.txt src/nlchanges.txt
-%attr(755,root,root) %{_libdir}/libNL.so.*
+%attr(755,root,root) %{_libdir}/libNL.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libNL.so.1
+%attr(755,root,root) %ghost %{_libdir}/libNL.so.1.6
 
 %files devel
 %defattr(644,root,root,755)
 %dir %{_includedir}/hawknl
 %{_includedir}/hawknl/*
-%{_libdir}/libNL.a
 %{_libdir}/libNL.so
+
+%files static
+%defattr(644,root,root,755)
+%{_libdir}/libNL.a
