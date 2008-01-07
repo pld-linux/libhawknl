@@ -1,5 +1,7 @@
+# TODO
+# - static
 Summary:	HawkNL is a free, open source, game oriented network API
-Name:		hawknl
+Name:		libhawknl
 Version:	1.68
 Release:	0.1
 License:	LGPL
@@ -8,7 +10,7 @@ URL:		http://www.hawksoft.com/hawknl/
 Source0:	http://www.sonic.net/~philf/download/HawkNL168src.tar.gz
 # Source0-md5:	2e4971d422b8c5cadfe2a85527ff2fcf
 Patch0:		%{name}-64bit.patch
-BuildRequires:	dos2unix
+BuildRequires:	sed >= 4.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -25,16 +27,15 @@ Summary:	DInclude Files and Libraries mandatory for development with hawknl
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
 
-%description -n libhawknl-devel
+%description devel
 The hawknl-devel package contains libraries and header files for
 developing applications that use hawknl.
 
 %prep
-%setup -q -n %{name}%{version}
+%setup -q -n hawknl%{version}
 %patch0 -p1
 
-dos2unix src/*.txt
-chmod 644 src/*.txt
+%{__sed} -i -e 's,\r$,,' src/*.txt
 
 # some fixups
 %{__sed} -i 's|ln -s $(LIBDIR)/$(OUTPUT)|ln -s $(OUTPUT)|g' \
@@ -44,12 +45,13 @@ chmod 644 src/*.txt
 
 %build
 %{__make} -f makefile.linux \
-	OPTFLAGS="$RPM_OPT_FLAGS -D_XOPEN_SOURCE=500"
+	CC="%{__cc}" \
+	OPTFLAGS="%{rpmcflags} -D_XOPEN_SOURCE=500"
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -dm 755 $RPM_BUILD_ROOT%{_libdir}
-install -dm 755 $RPM_BUILD_ROOT%{_includedir}/hawknl
+install -d $RPM_BUILD_ROOT%{_libdir}
+install -d $RPM_BUILD_ROOT%{_includedir}/hawknl
 %{__make} -f makefile.linux install \
 	LIBDIR=$RPM_BUILD_ROOT%{_libdir} \
 	INCDIR=$RPM_BUILD_ROOT%{_includedir}/hawknl
@@ -67,7 +69,7 @@ rm -rf  $RPM_BUILD_ROOT
 %doc src/readme.txt src/nlchanges.txt
 %attr(755,root,root) %{_libdir}/libNL.so.*
 
-%files -n libhawknl-devel
+%files devel
 %defattr(644,root,root,755)
 %dir %{_includedir}/hawknl
 %{_includedir}/hawknl/*
