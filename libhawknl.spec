@@ -1,7 +1,7 @@
 Summary:	HawkNL is a free, open source, game oriented network API
 Name:		libhawknl
 Version:	1.68
-Release:	0.2
+Release:	1
 License:	LGPL
 Group:		Libraries
 URL:		http://www.hawksoft.com/hawknl/
