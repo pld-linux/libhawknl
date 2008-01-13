@@ -1,13 +1,15 @@
-Summary:	HawkNL is a free, open source, game oriented network API
+Summary:	Game oriented network API
+Summary(pl.UTF-8):	API sieciowe zorientowane na gry
 Name:		libhawknl
 Version:	1.68
 Release:	1
-License:	LGPL
+License:	LGPL v2+
 Group:		Libraries
-URL:		http://www.hawksoft.com/hawknl/
-Source0:	http://www.sonic.net/~philf/download/HawkNL168src.tar.gz
+Source0:	http://www.hawksoft.com/download/files/HawkNL%(echo %{version} |tr -d .)src.tar.gz
 # Source0-md5:	2e4971d422b8c5cadfe2a85527ff2fcf
 Patch0:		%{name}-64bit.patch
+Patch1:		hawknl-makefile.patch
+URL:		http://www.hawksoft.com/hawknl/
 BuildRequires:	sed >= 4.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -20,52 +22,63 @@ many OSs, groups of sockets, socket statistics, high accuracy timer,
 CRC functions, macros to read and write data to packets with endian
 conversion, and support for multiple network transports.
 
+%description -l pl.UTF-8
+HawkNL (NL) to darmowe, mające otwarte źródła, wydane na licencji LGPL
+API sieciowe zorientowane na gry. Jest to dosyć niskopoziomowe API,
+obudowujące gniazda uniksowe (berkeleyowskie) i Winsock. Jednak
+udostępnia także takie elementy jak obsługa wielu systemów
+operacyjnych, grupy gniazd, statystyki gniazd, zegar o dużej
+dokładności, funkcje do sum kontrolnych, makra do odczytu i zapisu
+danych z/do pakietów z konwersją kolejności bajtów w słowie oraz
+obsługę wielu transportów sieciowych.
+
 %package devel
-Summary:	Include Files and Libraries mandatory for development with hawknl
+Summary:	Header files for HawkNL library
+Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki HawkNL
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
 
 %description devel
-The hawknl-devel package contains libraries and header files for
-developing applications that use hawknl.
+Header files for HawkNL library.
+
+%description devel -l pl.UTF-8
+Pliki nagłówkowe biblioteki HawkNL.
 
 %package static
-Summary:	Static hawknl library
+Summary:	Static HawkNL library
+Summary(pl.UTF-8):	Statyczna biblioteka HawkNL
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{version}-%{release}
 
 %description static
-Static hawknl library.
+Static HawkNL library.
+
+%description static -l pl.UTF-8
+Statyczna biblioteka HawkNL.
 
 %prep
 %setup -q -n hawknl%{version}
 %patch0 -p1
+%patch1 -p1
 
 %{__sed} -i -e 's,\r$,,' src/*.txt
-
-# some fixups
-%{__sed} -i 's|ln -s $(LIBDIR)/$(OUTPUT)|ln -s $(OUTPUT)|g' \
-	src/makefile.linux
-%{__sed} -i 's|-soname,NL.so|-soname,libNL.so|' \
-	src/makefile.linux
 
 %build
 %{__make} -f makefile.linux \
 	CC="%{__cc}" \
-	OPTFLAGS="%{rpmcflags} -D_XOPEN_SOURCE=500"
+	OPTFLAGS="%{rpmcflags} -ffast-math%{!?debug: -fomit-frame-pointer}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{_libdir}
-install -d $RPM_BUILD_ROOT%{_includedir}/hawknl
-%{__make} -f makefile.linux install \
-	LIBDIR=$RPM_BUILD_ROOT%{_libdir} \
-	INCDIR=$RPM_BUILD_ROOT%{_includedir}/hawknl
+install -d $RPM_BUILD_ROOT{%{_libdir},%{_includedir}/hawknl}
 
-rm $RPM_BUILD_ROOT%{_libdir}/NL.so
+%{__make} -f makefile.linux install \
+	DESTDIR=$RPM_BUILD_ROOT \
+	LIBDIR=%{_libdir} \
+	INCDIR=%{_includedir}/hawknl
 
 %clean
-rm -rf  $RPM_BUILD_ROOT
+rm -rf $RPM_BUILD_ROOT
 
 %post	-p /sbin/ldconfig
 %postun	-p /sbin/ldconfig
@@ -74,13 +87,12 @@ rm -rf  $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc src/readme.txt src/nlchanges.txt
 %attr(755,root,root) %{_libdir}/libNL.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libNL.so.1
 %attr(755,root,root) %ghost %{_libdir}/libNL.so.1.6
 
 %files devel
 %defattr(644,root,root,755)
 %dir %{_includedir}/hawknl
-%{_includedir}/hawknl/*
+%{_includedir}/hawknl/nl.h
 %{_libdir}/libNL.so
 
 %files static
